@@ -36,6 +36,8 @@ module Databasedotcom
     attr_accessor :ca_file
     # The SSL verify mode configured for this instance, if any
     attr_accessor :verify_mode
+    # The read timeout for HTTP connections to the Salesforce instance
+    attr_accessor :read_timeout
 
     # Returns a new client object. _options_ can be one of the following
     #
@@ -91,6 +93,8 @@ module Databasedotcom
       self.ca_file = ENV['DATABASEDOTCOM_CA_FILE'] || @options[:ca_file]
       self.verify_mode = ENV['DATABASEDOTCOM_VERIFY_MODE'] || @options[:verify_mode]
       self.verify_mode = self.verify_mode.to_i if self.verify_mode
+      self.read_timeout = ENV['DATABASEDOTCOM_READ_TIMEOUT'] || @options[:read_timeout]
+      self.read_timeout = self.read_timeout.to_i if self.read_timeout
     end
 
     # Authenticate to the Force.com API.  _options_ is a Hash, interpreted as follows:
@@ -384,6 +388,7 @@ module Databasedotcom
         http.use_ssl = true
         http.ca_file = self.ca_file if self.ca_file
         http.verify_mode = self.verify_mode if self.verify_mode
+        http.read_timeout = self.read_timeout if self.read_timeout
       end
     end
 

@@ -15,6 +15,7 @@ describe Databasedotcom::Client do
         ENV['DATABASEDOTCOM_SOBJECT_MODULE'] = "Databasedotcom::Sobject"
         ENV['DATABASEDOTCOM_CA_FILE'] = "ca/file.cert"
         ENV['DATABASEDOTCOM_VERIFY_MODE'] = "1"
+        ENV['DATABASEDOTCOM_READ_TIMEOUT'] = '5'
         @client = Databasedotcom::Client.new
       end
 
@@ -28,6 +29,7 @@ describe Databasedotcom::Client do
         ENV.delete "DATABASE_COM_URL"
         ENV.delete "DATABASEDOTCOM_CA_FILE"
         ENV.delete "DATABASEDOTCOM_VERIFY_MODE"
+        ENV.delete "DATABASEDOTCOM_READ_TIMEOUT"
       end
 
       it "takes configuration information from the environment, if present" do
@@ -39,6 +41,7 @@ describe Databasedotcom::Client do
         @client.sobject_module.should == "Databasedotcom::Sobject"
         @client.ca_file.should == "ca/file.cert"
         @client.verify_mode.should == 1
+        @client.read_timeout.should == 5
       end
 
       it "takes configuration information from a URL" do
@@ -52,6 +55,7 @@ describe Databasedotcom::Client do
         @client.sobject_module.should == "Databasedotcom::Sobject"
         @client.ca_file.should == "ca/file.cert"
         @client.verify_mode.should == 1
+        @client.read_timeout.should == 5
       end
     end
 
@@ -65,12 +69,13 @@ describe Databasedotcom::Client do
         client.version.should == '88'
         client.ca_file.should == "other/ca/file.cert"
         client.verify_mode.should == 1
+        client.read_timeout.should == 5
       end
     end
 
     context "from a hash" do
       it "takes configuration information from the hash" do
-        client = Databasedotcom::Client.new("client_id" => "client_id", "client_secret" => "client_secret", "debugging" => true, "host" => "foo.baz", "version" => "77", "ca_file" => "alt/ca/file.cert", "verify_mode" => 3)
+        client = Databasedotcom::Client.new("client_id" => "client_id", "client_secret" => "client_secret", "debugging" => true, "host" => "foo.baz", "version" => "77", "ca_file" => "alt/ca/file.cert", "verify_mode" => 3, "read_timeout" => 5)
         client.client_id.should == "client_id"
         client.client_secret.should == "client_secret"
         client.debugging.should be_true
@@ -78,10 +83,11 @@ describe Databasedotcom::Client do
         client.version.should == "77"
         client.ca_file.should == "alt/ca/file.cert"
         client.verify_mode.should == 3
+        client.read_timeout.should == 5
       end
 
       it "accepts symbols in the hash" do
-        client = Databasedotcom::Client.new(:client_id => "client_id", :client_secret => "client_secret", :debugging => true, :host => "foo.baz", :version => "77", :ca_file => "alt/ca/file.cert", :verify_mode => 3)
+        client = Databasedotcom::Client.new(:client_id => "client_id", :client_secret => "client_secret", :debugging => true, :host => "foo.baz", :version => "77", :ca_file => "alt/ca/file.cert", :verify_mode => 3, :read_timeout => 5)
         client.client_id.should == "client_id"
         client.client_secret.should == "client_secret"
         client.debugging.should be_true
@@ -89,6 +95,7 @@ describe Databasedotcom::Client do
         client.version.should == "77"
         client.ca_file.should == "alt/ca/file.cert"
         client.verify_mode.should == 3
+        client.read_timeout.should == 5
       end
     end
 
@@ -111,6 +118,10 @@ describe Databasedotcom::Client do
 
       it "defaults to no special verify mode" do
         @client.verify_mode.should be_nil
+      end
+
+      it "defaults to nil read_timeout" do
+        @client.read_timeout.should be_nil
       end
     end
 
