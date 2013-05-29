@@ -222,16 +222,18 @@ module Databasedotcom
       #
       #    client.materialize("Car")
       #    Car.all    #=>   [#<Car @Id="1", ...>, #<Car @Id="2", ...>, #<Car @Id="3", ...>, ...]
-      def self.all
-        self.client.query("SELECT #{self.field_list} FROM #{self.sobject_name}")
+      def self.all(field_list=nil)
+        field_list ||= self.field_list
+        self.client.query("SELECT #{field_list} FROM #{self.sobject_name}")
       end
 
       # Returns a collection of instances of self that match the conditional +where_expr+, which is the WHERE part of a SOQL query.
       #
       #    client.materialize("Car")
       #    Car.query("Color = 'Blue'")    #=>   [#<Car @Id="1", @Color="Blue", ...>, #<Car @Id="5", @Color="Blue", ...>, ...]
-      def self.query(where_expr)
-        self.client.query("SELECT #{self.field_list} FROM #{self.sobject_name} WHERE #{where_expr}")
+      def self.query(where_expr, field_list=nil)
+        field_list ||= self.field_list
+        self.client.query("SELECT #{field_list} FROM #{self.sobject_name} WHERE #{where_expr}")
       end
 
       # Delegates to Client.search
@@ -240,15 +242,17 @@ module Databasedotcom
       end
 
       # Find the first record. If the +where_expr+ argument is present, it must be the WHERE part of a SOQL query
-      def self.first(where_expr=nil)
+      def self.first(where_expr=nil, field_list=nil)
         where = where_expr ? "WHERE #{where_expr} " : ""
-        self.client.query("SELECT #{self.field_list} FROM #{self.sobject_name} #{where}ORDER BY Id ASC LIMIT 1").first
+        field_list ||= self.field_list
+        self.client.query("SELECT #{field_list} FROM #{self.sobject_name} #{where}ORDER BY Id ASC LIMIT 1").first
       end
 
       # Find the last record. If the +where_expr+ argument is present, it must be the WHERE part of a SOQL query
-      def self.last(where_expr=nil)
+      def self.last(where_expr=nil, field_list=nil)
         where = where_expr ? "WHERE #{where_expr} " : ""
-        self.client.query("SELECT #{self.field_list} FROM #{self.sobject_name} #{where}ORDER BY Id DESC LIMIT 1").first
+        field_list ||= self.field_list
+        self.client.query("SELECT #{field_list} FROM #{self.sobject_name} #{where}ORDER BY Id DESC LIMIT 1").first
       end
 
       #Delegates to Client.upsert with arguments self, +field+, +values+, and +attrs+
@@ -289,7 +293,14 @@ module Databasedotcom
 
           limit_clause = method_name.to_s.include?('_all_by_') ? "" : " LIMIT 1"
 
-          results = self.client.query("SELECT #{self.field_list} FROM #{self.sobject_name} WHERE #{soql_conditions_for(attrs_and_values_for_find)}#{limit_clause}")
+          if args.length > named_attrs.length
+            field_list = args.slice(named_attrs.length)
+            field_list = field_list[:field_list] if field_list.is_a?(Hash)
+          else
+            field_list = self.field_list
+          end
+
+          results = self.client.query("SELECT #{field_list} FROM #{self.sobject_name} WHERE #{soql_conditions_for(attrs_and_values_for_find)}#{limit_clause}")
           results = limit_clause == "" ? results : results.first rescue nil
 
           if results.nil?

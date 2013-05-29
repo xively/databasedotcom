@@ -163,12 +163,22 @@ describe Databasedotcom::Sobject::Sobject do
         @client.should_receive(:query).with("SELECT #{@field_names.join(',')} FROM TestClass").and_return("foo")
         TestClass.all.should == "foo"
       end
+
+      it "returns a paginated enumerable containing all instances but allowing passing an explicit field_list to select from" do
+        @client.should_receive(:query).with("SELECT #{@field_names.first} FROM TestClass").and_return("foo")
+        TestClass.all(@field_names.first).should == "foo"
+      end
     end
 
     describe ".query" do
       it "constructs and submits a SOQL query" do
         @client.should_receive(:query).with("SELECT #{@field_names.join(',')} FROM TestClass WHERE Name = 'foo'").and_return("bar")
         TestClass.query("Name = 'foo'").should == "bar"
+      end
+
+      it "constructs and submits a SOQL query allowing passing an explicit field_list to select from" do
+        @client.should_receive(:query).with("SELECT #{@field_names.first} FROM TestClass WHERE Name = 'foo'").and_return("bar")
+        TestClass.query("Name = 'foo'", @field_names.first).should == "bar"
       end
     end
 
@@ -189,6 +199,16 @@ describe Databasedotcom::Sobject::Sobject do
         @client.should_receive(:query).with("SELECT #{@field_names.join(',')} FROM TestClass WHERE conditions ORDER BY Id ASC LIMIT 1").and_return(["foo"])
         TestClass.first("conditions").should == "foo"
       end
+
+      it "optionally allows passing arbitrary field_list" do
+        @client.should_receive(:query).with("SELECT #{@field_names.first} FROM TestClass ORDER BY Id ASC LIMIT 1").and_return(["foo"])
+        TestClass.first(nil, @field_names.first).should == "foo"
+      end
+
+      it "optionally includes SOQL conditions and an arbitrary field_list" do
+        @client.should_receive(:query).with("SELECT #{@field_names.first} FROM TestClass WHERE conditions ORDER BY Id ASC LIMIT 1").and_return(["foo"])
+        TestClass.first("conditions", @field_names.first).should == "foo"
+      end
     end
 
     describe ".last" do
@@ -200,6 +220,16 @@ describe Databasedotcom::Sobject::Sobject do
       it "optionally includes SOQL conditions" do
         @client.should_receive(:query).with("SELECT #{@field_names.join(',')} FROM TestClass WHERE conditions ORDER BY Id DESC LIMIT 1").and_return(["bar"])
         TestClass.last("conditions").should == "bar"
+      end
+
+      it "optionally allows passing arbitrary field_list" do
+        @client.should_receive(:query).with("SELECT #{@field_names.first} FROM TestClass ORDER BY Id DESC LIMIT 1").and_return(["bar"])
+        TestClass.last(nil, @field_names.first).should == "bar"
+      end
+
+      it "optionally includes SOQL conditions and arbitrary field_list" do
+        @client.should_receive(:query).with("SELECT #{@field_names.first} FROM TestClass WHERE conditions ORDER BY Id DESC LIMIT 1").and_return(["bar"])
+        TestClass.last("conditions", @field_names.first).should == "bar"
       end
     end
 
@@ -287,6 +317,17 @@ describe Databasedotcom::Sobject::Sobject do
             @client.should_receive(:query).with("SELECT #{@field_names.join(',')} FROM TestClass WHERE Name = 'o\\'reilly' LIMIT 1").and_return(["bar"])
             TestClass.find_by_Name("o'reilly").should == "bar"
           end
+
+          it "constructs and executes a query matching the dynamic attributes and allows arbitrary field_list" do
+            @client.should_receive(:query).with("SELECT #{@field_names.first} FROM TestClass WHERE Name = 'Richard' LIMIT 1").and_return(["bar"])
+            TestClass.find_by_Name('Richard', @field_names.first).should == "bar"
+          end
+
+          it "constructs and executes a query matching the dynamic attributes and allows arbitrary field_list passed in an options hash" do
+            @client.should_receive(:query).with("SELECT #{@field_names.first} FROM TestClass WHERE Name = 'Richard' LIMIT 1").and_return(["bar"])
+            TestClass.find_by_Name('Richard', { :field_list => @field_names.first }).should == "bar"
+          end
+
         end
 
         context "with multiple attributes" do
@@ -298,6 +339,16 @@ describe Databasedotcom::Sobject::Sobject do
               ["bar"]
             end
             TestClass.find_by_Name_and_City('Richard', 'San Francisco').should == "bar"
+          end
+
+          it "constructs and executes a query matching the dynamic attributes but with arbitrary field_list" do
+            @client.should_receive(:query).with("SELECT #{@field_names.first} FROM TestClass WHERE Name = 'Richard' AND City = 'San Francisco' LIMIT 1").and_return(["bar"])
+            TestClass.find_by_Name_and_City('Richard', 'San Francisco', @field_names.first).should == "bar"
+          end
+
+          it "constructs and executes a query matching the dynamic attributes but with arbitrary field_list passed as a hash" do
+            @client.should_receive(:query).with("SELECT #{@field_names.first} FROM TestClass WHERE Name = 'Richard' AND City = 'San Francisco' LIMIT 1").and_return(["bar"])
+            TestClass.find_by_Name_and_City('Richard', 'San Francisco', { :field_list => @field_names.first }).should == "bar"
           end
         end
       end
@@ -582,18 +633,18 @@ describe Databasedotcom::Sobject::Sobject do
             attrs.include?("OwnerId").should be_true
             @obj_double
           end
-          
+
           @obj.save(:exclusions => ["Name"])
         end
-        
+
         it "remove any listed fields from the attributes on update" do
           @obj.Id = "foo"
-          
+
           @client.should_receive(:update) do |clazz, id, attrs|
             attrs.include?("Name").should be_false
             attrs.include?("OwnerId").should be_true
           end
-          
+
           result = @obj.save(:exclusions => ["Name"])
         end
       end
