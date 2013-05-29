@@ -199,18 +199,20 @@ client.materialize("Contact") #=> My::Module::Contact
 Materialized Sobject classes behave much like ActiveRecord classes:
 
 ```ruby
-contact = Contact.find("contact_id")                #=> #<Contact @Id="contact_id", ...>
-contact = Contact.find_by_Name("John Smith")        #=> dynamic finders!
-contacts = Contact.all                              #=> a Databasedotcom::Collection of Contact instances
-contacts = Contact.find_all_by_Company("IBM")       #=> a Databasedotcom::Collection of matching Contacts
-contact.Name                                        #=> the contact's Name attribute
-contact["Name"]                                     #=> same thing
-contact.Name = "new name"                           #=> change the contact's Name attribute, in memory
-contact["Name"] = "new name"                        #=> same thing
-contact.save                                        #=> save the changes to the database
+contact = Contact.find("contact_id")                               #=> #<Contact @Id="contact_id", ...>
+contact = Contact.find("contact_id", "LastName,FirstName")         #=> #<Contact @Id="contact_id", ...>
+contact = Contact.find_by_Name("John Smith")                       #=> dynamic finders!
+contact = Contact.find_by_Name("John Smith", "LastName,FirstName") #=> dynamic finders!
+contacts = Contact.all                                             #=> a Databasedotcom::Collection of Contact instances
+contacts = Contact.find_all_by_Company("IBM")                      #=> a Databasedotcom::Collection of matching Contacts
+contact.Name                                                       #=> the contact's Name attribute
+contact["Name"]                                                    #=> same thing
+contact.Name = "new name"                                          #=> change the contact's Name attribute, in memory
+contact["Name"] = "new name"                                       #=> same thing
+contact.save                                                       #=> save the changes to the database
 contact.update_attributes "Name" => "newer name",
-  "Phone" => "4156543210"                           #=> change several attributes at once and save them
-contact.delete                                      #=> delete the contact from the database
+  "Phone" => "4156543210"                                          #=> change several attributes at once and save them
+contact.delete                                                     #=> delete the contact from the database
 ```
 
 See the [documentation](http://rubydoc.info/github/heroku/databasedotcom/master/frames) for full details.
