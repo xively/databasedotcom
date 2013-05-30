@@ -342,12 +342,24 @@ describe Databasedotcom::Sobject::Sobject do
           end
 
           it "constructs and executes a query matching the dynamic attributes but with arbitrary field_list" do
-            @client.should_receive(:query).with("SELECT #{@field_names.first} FROM TestClass WHERE Name = 'Richard' AND City = 'San Francisco' LIMIT 1").and_return(["bar"])
+            @client.should_receive(:query) do |query|
+              query.should include("Name = 'Richard'")
+              query.should include("City = 'San Francisco'")
+              query.should include(" LIMIT 1")
+              query.should include("SELECT Id FROM")
+              ["bar"]
+            end
             TestClass.find_by_Name_and_City('Richard', 'San Francisco', @field_names.first).should == "bar"
           end
 
           it "constructs and executes a query matching the dynamic attributes but with arbitrary field_list passed as a hash" do
-            @client.should_receive(:query).with("SELECT #{@field_names.first} FROM TestClass WHERE Name = 'Richard' AND City = 'San Francisco' LIMIT 1").and_return(["bar"])
+            @client.should_receive(:query) do |query|
+              query.should include("Name = 'Richard'")
+              query.should include("City = 'San Francisco'")
+              query.should include(" LIMIT 1")
+              query.should include("SELECT Id FROM")
+              ["bar"]
+            end
             TestClass.find_by_Name_and_City('Richard', 'San Francisco', { :field_list => @field_names.first }).should == "bar"
           end
         end
