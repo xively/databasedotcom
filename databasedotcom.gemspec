@@ -24,10 +24,4 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rspec', '~> 2.6'
   s.add_development_dependency 'webmock'
   s.add_development_dependency 'rake', '>= 0.8.6'
-
-  if RUBY_VERSION >= "1.9"
-    s.add_development_dependency 'debugger'
-  else
-    s.add_development_dependency 'ruby-debug'
-  end
 end
